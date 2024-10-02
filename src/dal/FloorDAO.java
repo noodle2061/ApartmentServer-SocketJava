@@ -31,12 +31,32 @@ public class FloorDAO extends DBContext{
             return false;
         }
     }
+    
 
     // READ: Lấy thông tin tầng theo ID
     public Floor getFloorById(int floorId) {
         String sql = "SELECT * FROM Floor WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, floorId);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return new Floor(
+                    resultSet.getInt("id"),
+                    resultSet.getString("name"),
+                    resultSet.getString("description"),
+                    resultSet.getBoolean("in_use_status")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    public Floor findFloorByName(String name) {
+        String sql = "SELECT * FROM Floor WHERE name = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, name);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
                 return new Floor(

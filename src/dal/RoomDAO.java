@@ -76,6 +76,32 @@ public class RoomDAO extends DBContext {
         }
         return rooms;
     }
+    
+     public Room getRoomByNameAndFloor(String roomName, String floorName) {
+        String sql = "SELECT room.id, room.name, room.area, room.capacity, room.in_use_status, room.floor_id "
+                + "FROM apartment.room "
+                + "JOIN apartment.floor ON room.floor_id = floor.id "
+                + "WHERE room.name = ? AND floor.name = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, roomName);
+            statement.setString(2, floorName);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return new Room(
+                        resultSet.getInt("id"),
+                        resultSet.getString("name"),
+                        resultSet.getDouble("area"),
+                        resultSet.getInt("capacity"),
+                        resultSet.getBoolean("in_use_status"),
+                        resultSet.getInt("floor_id")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
 // "SELECT 	room.name AS room_name, floor.name AS floor_name, room.area, room.capacity FROM apartment.room JOIN apartment.floor ON (room.floor_id = floor.id) WHERE (floor.in_use_status = TRUE);"
     // READ: Lấy danh sách tất cả các phòng
 
@@ -141,27 +167,7 @@ public class RoomDAO extends DBContext {
         return res;
     }
 
-//    public List<Room> getAllRooms() {
-//        List<Room> rooms = new ArrayList<>();
-//        String sql = "SELECT * FROM Room";
-//        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-//            ResultSet resultSet = statement.executeQuery();
-//            while (resultSet.next()) {
-//                Room room = new Room(
-//                    resultSet.getInt("id"),
-//                    resultSet.getString("name"),
-//                    resultSet.getDouble("area"),
-//                    resultSet.getInt("capacity"),
-//                    resultSet.getBoolean("in_use_status"),
-//                    resultSet.getInt("floor_id")
-//                );
-//                rooms.add(room);
-//            }
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-//        return rooms;
-//    }
+
     // UPDATE: Cập nhật thông tin phòng
     public boolean updateRoom(Room room) {
         String sql = "UPDATE Room SET name = ?, area = ?, capacity = ?, in_use_status = ?, floor_id = ? WHERE id = ?";
@@ -180,10 +186,10 @@ public class RoomDAO extends DBContext {
     }
 
     // DELETE: Xóa phòng theo ID
-    public boolean deleteRoom(int roomId) {
-        String sql = "DELETE FROM Room WHERE id = ?";
+    public boolean deleteRoom(String roomName, String floorName) {
+        String sql = "DELETE room FROM Room JOIN Floor ON (room.floor_id = floor.id) WHERE room.name = \"" + roomName+ "\" and floor.name = \"" + floorName + "\"";
+        System.out.println(sql);
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, roomId);
             return statement.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
