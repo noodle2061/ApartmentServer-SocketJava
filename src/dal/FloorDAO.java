@@ -2,7 +2,6 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-
 package dal;
 
 import java.sql.PreparedStatement;
@@ -16,8 +15,8 @@ import model.Floor;
  *
  * @author admin
  */
-public class FloorDAO extends DBContext{
-    
+public class FloorDAO extends DBContext {
+
     // CREATE: Thêm một tầng mới vào cơ sở dữ liệu
     public boolean addFloor(Floor floor) {
         String sql = "INSERT INTO Floor (name, description, in_use_status) VALUES (?, ?, ?)";
@@ -31,7 +30,6 @@ public class FloorDAO extends DBContext{
             return false;
         }
     }
-    
 
     // READ: Lấy thông tin tầng theo ID
     public Floor getFloorById(int floorId) {
@@ -41,10 +39,10 @@ public class FloorDAO extends DBContext{
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
                 return new Floor(
-                    resultSet.getInt("id"),
-                    resultSet.getString("name"),
-                    resultSet.getString("description"),
-                    resultSet.getBoolean("in_use_status")
+                        resultSet.getInt("id"),
+                        resultSet.getString("name"),
+                        resultSet.getString("description"),
+                        resultSet.getBoolean("in_use_status")
                 );
             }
         } catch (SQLException e) {
@@ -52,7 +50,7 @@ public class FloorDAO extends DBContext{
         }
         return null;
     }
-    
+
     public Floor findFloorByName(String name) {
         String sql = "SELECT * FROM Floor WHERE name = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -60,10 +58,10 @@ public class FloorDAO extends DBContext{
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
                 return new Floor(
-                    resultSet.getInt("id"),
-                    resultSet.getString("name"),
-                    resultSet.getString("description"),
-                    resultSet.getBoolean("in_use_status")
+                        resultSet.getInt("id"),
+                        resultSet.getString("name"),
+                        resultSet.getString("description"),
+                        resultSet.getBoolean("in_use_status")
                 );
             }
         } catch (SQLException e) {
@@ -71,43 +69,40 @@ public class FloorDAO extends DBContext{
         }
         return null;
     }
-    
-     public List<Floor> getFloorByName(String name) {
-        String sql = "SELECT * FROM Floor WHERE name like = \"%" + name + "%\"";
+
+    public String getFloorByName(String name) {
+        String sql = "SELECT * FROM Floor WHERE name LIKE ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, "\"%" + name + "%\"");
             ResultSet resultSet = statement.executeQuery();
-            List<Floor> floors = new ArrayList<>();
+            StringBuilder result = new StringBuilder();
             while (resultSet.next()) {
-                Floor floor = new Floor(
-                    resultSet.getInt("id"),
-                    resultSet.getString("name"),
-                    resultSet.getString("description"),
-                    resultSet.getBoolean("in_use_status")
-                );
-                floors.add(floor);
+                String floorDetails = resultSet.getInt("id") + "$"
+                        + resultSet.getString("name") + "$"
+                        + resultSet.getString("description") + "$"
+                        + resultSet.getBoolean("in_use_status");
+                if (result.length() > 0) {
+                    result.append("$");
+                }
+                result.append(floorDetails);
             }
-            return floors;
+            return result.toString();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return null;
+        return "";
     }
-    
 
     // READ: Lấy danh sách tất cả các tầng
-    public List<Floor> getAllFloors() {
-        List<Floor> floors = new ArrayList<>();
-        String sql = "SELECT * FROM Floor";
+    public String getAllFloors() {
+        String floors = "";
+        String sql = "SELECT * FROM Floor where in_use_status = true";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
-                Floor floor = new Floor(
-                    resultSet.getInt("id"),
-                    resultSet.getString("name"),
-                    resultSet.getString("description"),
-                    resultSet.getBoolean("in_use_status")
-                );
-                floors.add(floor);
+                floors += ""
+                        + resultSet.getString("name") + "$"
+                        + resultSet.getString("description") + "$";
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -115,6 +110,25 @@ public class FloorDAO extends DBContext{
         return floors;
     }
 
+//    public List<Floor> getAllFloors() {
+//        List<Floor> floors = new ArrayList<>();
+//        String sql = "SELECT * FROM Floor";
+//        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+//            ResultSet resultSet = statement.executeQuery();
+//            while (resultSet.next()) {
+//                Floor floor = new Floor(
+//                    resultSet.getInt("id"),
+//                    resultSet.getString("name"),
+//                    resultSet.getString("description"),
+//                    resultSet.getBoolean("in_use_status")
+//                );
+//                floors.add(floor);
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return floors;
+//    }
     // UPDATE: Cập nhật thông tin tầng
     public boolean updateFloor(Floor floor) {
         String sql = "UPDATE Floor SET name = ?, description = ?, in_use_status = ? WHERE id = ?";
@@ -131,10 +145,10 @@ public class FloorDAO extends DBContext{
     }
 
     // DELETE: Xóa tầng theo ID
-    public boolean deleteFloor(int floorId) {
-        String sql = "DELETE FROM Floor WHERE id = ?";
+    public boolean deleteFloor(String name) {
+        String sql = "UPDATE Floor SET in_use_status = false WHERE name = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, floorId);
+            statement.setString(1, name);
             return statement.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();

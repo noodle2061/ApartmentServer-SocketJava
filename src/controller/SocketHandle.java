@@ -133,6 +133,33 @@ public class SocketHandle implements Runnable {
                     String Rooms = rdb.getAllRooms();
                     message = "modify-room-response-success$" + Rooms;
                 }
+                
+                else if (receivedMessage.startsWith("get-all-floor-request")) {
+                    String getAll = fdb.getAllFloors();
+                    message = "get-all-floor-success$" + getAll;
+                }
+                
+                else if (receivedMessage.startsWith("find-floor-request")){
+                    msg = receivedMessage.split("\\$");
+                    String res = fdb.getFloorByName(msg[1]);
+                    message = "find-floor-reques-success$" + res;
+                }
+                else if (receivedMessage.startsWith("delete-floor-request")){
+                    msg = receivedMessage.split("\\$");
+                    String name = msg[1];
+                    String passVerify = msg[2];
+                    String floorName = msg[3];
+                    User u = udb.findByName(msg[1]);
+                    if (!u.getPassword().equals(passVerify)) {
+                        message = "delete-floor-request-fail";
+                    } else if (fdb.deleteFloor(floorName)) {
+                        message = "delete-floor-request-success";
+                    }else {
+                        message = "delete-floor-request-fail";
+                    }
+                }
+                
+                
                 // in ra console
                 System.out.println("Server: " + message);
 

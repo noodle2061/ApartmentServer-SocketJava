@@ -15,8 +15,7 @@ import model.Floor;
  */
 public class test {
     public static void main(String[] args) {
-        RoomDAO rdb = new RoomDAO();
-        String lst = rdb.getAllRooms();
-        System.out.println(lst);
+       FloorDAO fdb = new FloorDAO();
+        System.out.println(fdb.getAllFloors());
     }
 }
