@@ -9,6 +9,7 @@ import dal.RoomDAO;
 import dal.UserDAO;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import model.Floor;
 import model.Room;
 import model.User;
 
@@ -142,7 +143,7 @@ public class SocketHandle implements Runnable {
                 else if (receivedMessage.startsWith("find-floor-request")){
                     msg = receivedMessage.split("\\$");
                     String res = fdb.getFloorByName(msg[1]);
-                    message = "find-floor-reques-success$" + res;
+                    message = "find-floor-success$" + res;
                 }
                 else if (receivedMessage.startsWith("delete-floor-request")){
                     msg = receivedMessage.split("\\$");
@@ -153,10 +154,55 @@ public class SocketHandle implements Runnable {
                     if (!u.getPassword().equals(passVerify)) {
                         message = "delete-floor-request-fail";
                     } else if (fdb.deleteFloor(floorName)) {
-                        message = "delete-floor-request-success";
+                        String res = fdb.getAllFloors();
+                        message = "delete-floor-request-success$" + res;
                     }else {
                         message = "delete-floor-request-fail";
                     }
+                }
+                
+                else if (receivedMessage.startsWith("get-floor-close-request")) {
+                    String res = fdb.getAllUnuseFloors();
+                    message = "get-floor-close-success$" + res;
+                }
+                
+                else if (receivedMessage.startsWith("add-floor-request")) {
+                    msg = receivedMessage.split("\\$");
+                    String floorName = msg[1];
+                    fdb.addFloor(floorName);
+                    String res = fdb.getAllFloors();
+                    message = "add-floor-success$" + res;
+                }
+                
+                else if (receivedMessage.startsWith("add-room-request")) {
+                    msg = receivedMessage.split("\\$");
+                    String floorName = msg[1];
+                    String name = msg[2];
+                    String area = msg[3];
+                    String capacity = msg[4];
+                    
+                    Floor f = fdb.findFloorByName(floorName);
+                    Room room = rdb.getRoomByNameandFloor(name, f.getFloorId());
+                    if (room != null) {
+                        message = "add-room-fail";
+                    } else {
+                        room = new Room(0, name, Double.parseDouble(area), Integer.parseInt(capacity), true, f.getFloorId());
+                        rdb.addRoom(room);
+                        message = "add-room-success";
+                    }
+                }
+                
+                else if (receivedMessage.startsWith("change-floor-describe-request")) {
+                    msg = receivedMessage.split("\\$");
+                    String floorName = msg[1];
+                    String newDescription = msg[2];
+                    
+                    Floor f = fdb.findFloorByName(floorName);
+                    f.setDescription(newDescription);
+                    fdb.updateFloor(f);
+                    
+                    String res = fdb.getAllFloors();
+                    message = "change-floor-describe-success$" + res;
                 }
                 
                 

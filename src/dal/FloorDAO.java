@@ -52,9 +52,8 @@ public class FloorDAO extends DBContext {
     }
 
     public Floor findFloorByName(String name) {
-        String sql = "SELECT * FROM Floor WHERE name = ?";
+        String sql = "SELECT * FROM Floor WHERE name = \"" + name + "\"";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, name);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
                 return new Floor(
@@ -97,6 +96,22 @@ public class FloorDAO extends DBContext {
     public String getAllFloors() {
         String floors = "";
         String sql = "SELECT * FROM Floor where in_use_status = true";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                floors += ""
+                        + resultSet.getString("name") + "$"
+                        + resultSet.getString("description") + "$";
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return floors;
+    }
+    
+    public String getAllUnuseFloors() {
+        String floors = "";
+        String sql = "SELECT * FROM Floor where in_use_status = false";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
@@ -155,4 +170,15 @@ public class FloorDAO extends DBContext {
             return false;
         }
     }
+    public boolean addFloor(String name) {
+        String sql = "UPDATE Floor SET in_use_status = true WHERE name = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, name);
+            return statement.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
 }

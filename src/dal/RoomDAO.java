@@ -54,6 +54,28 @@ public class RoomDAO extends DBContext {
         }
         return null;
     }
+    
+    public Room getRoomByNameandFloor(String name, int floor_id) {
+        String sql = "SELECT * FROM Room WHERE name = ? and floor_id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, name);
+            statement.setInt(1, floor_id);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return new Room(
+                        resultSet.getInt("id"),
+                        resultSet.getString("name"),
+                        resultSet.getDouble("area"),
+                        resultSet.getInt("capacity"),
+                        resultSet.getBoolean("in_use_status"),
+                        resultSet.getInt("floor_id")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     public List<Room> getRoomByName(String name) {
         List<Room> rooms = new ArrayList<>();
