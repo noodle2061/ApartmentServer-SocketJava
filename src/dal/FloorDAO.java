@@ -70,16 +70,16 @@ public class FloorDAO extends DBContext {
     }
 
     public String getFloorByName(String name) {
-        String sql = "SELECT * FROM Floor WHERE name LIKE ?";
+        String sql = "SELECT * FROM Floor WHERE name LIKE " + "\"%" + name + "%\"";
+        System.out.println(sql);
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, "\"%" + name + "%\"");
             ResultSet resultSet = statement.executeQuery();
             StringBuilder result = new StringBuilder();
             while (resultSet.next()) {
-                String floorDetails = resultSet.getInt("id") + "$"
-                        + resultSet.getString("name") + "$"
-                        + resultSet.getString("description") + "$"
-                        + resultSet.getBoolean("in_use_status");
+                String floorDetails = 
+                        resultSet.getString("name") + "$"
+                        + resultSet.getString("description");
+                        
                 if (result.length() > 0) {
                     result.append("$");
                 }
